@@ -6,7 +6,7 @@
 
 // Data
 const account1 = {
-  owner: 'Jonas Schmedtmann',
+  owner: 'Daniel Janocha',
   movements: [200, 450, -400, 3000, -650, -130, 70, 1300],
   interestRate: 1.2, // %
   pin: 1111,
@@ -74,3 +74,18 @@ const currencies = new Map([
 const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 
 /////////////////////////////////////////////////
+
+//inserting user's movements (cash transfers):
+
+function populateMovements(userIndex) {
+  containerMovements.innerHTML=''; // clean hardcoded html made (the skeleton on which we based that contained both  movement types)
+  for (const [index, value] of Object.entries(accounts[userIndex].movements)) {
+    const type = value<0 ? 'withdrawal' : 'deposit'
+    const movementsString = `<div class="movements__row">
+      <div class="movements__type movements__type--${type}">${+index+1} ${type}</div>
+      <div class="movements__value">${value}</div>
+    </div>`;
+    containerMovements.insertAdjacentHTML('afterbegin', movementsString);
+  }
+}
+populateMovements(0);
