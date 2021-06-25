@@ -78,10 +78,9 @@ const currencies = new Map([
 
 
 
-//inserting user's movements (cash transfers):
+//functions:
 
 const getFinalBalance = movements => movements.reduce((acc, mov) => acc + mov)
-
 
 const generateUsername = username => "".concat(username)
 .replace('-', ' ')
@@ -91,21 +90,31 @@ const generateUsername = username => "".concat(username)
 
 
 
-
-
 const createUsernames = accs => {
   accs.forEach(acc => { acc.username = generateUsername(acc.owner) });
 }
+const transferMoney=()=>{
+  let amount = Number(inputTransferAmount.value);
+  let dest = inputTransferTo.value;
+  if (amount > 0 && amount<=currentUser.balance && accounts.find(acc => acc.username ===dest)){
+    const findresult = accounts.find(acc => acc.username===dest)
 
+    //add movement to curr user (negative value)
+    currentUser.movements.push(0-amount);//
+    // //add movement to destination user (positive value)
+    findresult.movements.push(amount)
 
-
-
-
-const loginInto = e => {
+    updateUI(currentUser);
+  }
+  inputTransferAmount.value = inputTransferTo.value = ''; //whether transfer was successful or not, we have to clean those input fields and ...
+  inputTransferAmount.blur(); //and get the focus out of this one
 }
 
-createUsernames(accounts)
+createUsernames(accounts);
 // update visual data:
+function hideUI(){
+  containerApp.style.opacity=0;
+}
 function updateUI(user){
   displayMovements(user.movements)
   displaySummary(user);
@@ -150,7 +159,6 @@ btnLogin.addEventListener('click', function (e) {
   inputLoginPin.value = ''; //clean password label after logging
   inputLoginPin.blur(); //unfocus password label after logging
 
-
   updateUI(currentUser);
 
 });
@@ -161,29 +169,26 @@ btnTransfer.addEventListener('click', function(e){
 
 });
 
+btnClose.addEventListener('click', function(e){
+  e.preventDefault();
+  const givenUsername = inputCloseUsername.value;
+  const givenPassword = Number(inputClosePin.value);
+
+  if (givenUsername===currentUser.username && givenPassword===currentUser.pin){
+    setTimeout(()=>{
+      if(confirm("are you sure?")){
+        const index = accounts.findIndex(acc=>acc.username === currentUser.username);
+        console.log(index)
+        accounts.splice(index, 1)
+        console.log(`removedd ${index}. user`);
+        hideUI();
+        labelWelcome.textContent='Feel free to log in :)';
+      }
+    },1000);
+  }
+})
+
 ////////////////////////////////////////////////////////////////////// TRYING ONLY:
 
-const transferMoney=()=>{
-  //if you have enough money, 
-  //add movement to currentUser and to given user
-  //depending on  ammount of cash given in the parameter
-  //then add  eventlistener for the button with delay to make transporting money
-  // inputTransferTo  
-  // inputTransferAmount
-  let amount = Number(inputTransferAmount.value);
-  let dest = inputTransferTo.value;
-  if (amount<=currentUser.balance && accounts.find(acc => acc.username ===dest)){
-    const findresult = accounts.find(acc => acc.username===dest)
-
-    //add movement to curr user (negative value)
-    currentUser.movements.push(0-amount);//
-    // //add movement to destination user (positive value)
-    findresult.movements.push(amount)
-
-    updateUI(currentUser);
-  }
-  inputTransferAmount.value = inputTransferTo.value = ''; //whether transfer was successful or not, we have to clean those input fields and ...
-  inputTransferAmount.blur(); //and get the focus out of this one
-}
 
 
