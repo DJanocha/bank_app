@@ -71,7 +71,7 @@ const currencies = new Map([
   ['GBP', 'Pound sterling'],
 ]);
 
-const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
+// const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 
 /////////////////////////////////////////////////
 
@@ -80,6 +80,37 @@ const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 
 //inserting user's movements (cash transfers):
 
+const getFinalBalance = movements => movements.reduce((acc, mov) => acc + mov)
+
+
+const generateUsername = username => "".concat(username)
+.replace('-', ' ')
+.toLowerCase().split(' ')
+.map(word => word[0])
+.join('');
+
+
+
+
+
+const createUsernames = accs => {
+  accs.forEach(acc => { acc.username = generateUsername(acc.owner) });
+}
+
+
+
+
+
+const loginInto = e => {
+}
+
+createUsernames(accounts)
+// update visual data:
+function updateUI(user){
+  displayMovements(user.movements)
+  displaySummary(user);
+  displayBalance(user);
+}
 function displayMovements(movements) {
   containerMovements.innerHTML = ''; // clean hardcoded html made (the skeleton on which we based that contained both  movement types)
   for (const [index, value] of Object.entries(movements)) {
@@ -91,20 +122,6 @@ function displayMovements(movements) {
     containerMovements.insertAdjacentHTML('afterbegin', movementsString);
   }
 }
-function displayBalance(movements) {
-  const getFinalBalance = movements => movements.reduce((acc, mov) => acc + mov)
-  labelBalance.textContent = getFinalBalance(movements) + "€"
-}
-
-const generateUsername = username => "".concat(username)
-  .replace('-', ' ')
-  .toLowerCase().split(' ')
-  .map(word => word[0])
-  .join('');
-
-const createUsernames = accs => {
-  accs.forEach(acc => { acc.username = generateUsername(acc.owner) });
-}
 const displaySummary = user => {
   const sumIn = user.movements.filter(el => el > 0).reduce((acc, item) => acc + item);
   const sumOut = user.movements.filter(el => el < 0).reduce((acc, item) => acc + item);
@@ -113,11 +130,10 @@ const displaySummary = user => {
   labelSumOut.textContent = Math.abs(sumOut) + "€";
   labelSumInterest.textContent = interest + "€";
 }
-const loginInto = e => {
+function displayBalance(account) {
+  account.balance = getFinalBalance(account.movements);
+  labelBalance.textContent = account.balance + "€"
 }
-
-// update visual data:
-createUsernames(accounts)
 
 //event listeners:
 let currentUser;
@@ -135,12 +151,39 @@ btnLogin.addEventListener('click', function (e) {
   inputLoginPin.blur(); //unfocus password label after logging
 
 
-  displayMovements(currentUser.movements);
-  displayBalance(currentUser.movements);
-  displaySummary(currentUser);
+  updateUI(currentUser);
 
 });
 
+btnTransfer.addEventListener('click', function(e){
+  e.preventDefault();
+  setTimeout(transferMoney, 1000);
 
+});
+
+////////////////////////////////////////////////////////////////////// TRYING ONLY:
+
+const transferMoney=()=>{
+  //if you have enough money, 
+  //add movement to currentUser and to given user
+  //depending on  ammount of cash given in the parameter
+  //then add  eventlistener for the button with delay to make transporting money
+  // inputTransferTo  
+  // inputTransferAmount
+  let amount = Number(inputTransferAmount.value);
+  let dest = inputTransferTo.value;
+  if (amount<=currentUser.balance && accounts.find(acc => acc.username ===dest)){
+    const findresult = accounts.find(acc => acc.username===dest)
+
+    //add movement to curr user (negative value)
+    currentUser.movements.push(0-amount);//
+    // //add movement to destination user (positive value)
+    findresult.movements.push(amount)
+
+    updateUI(currentUser);
+  }
+  inputTransferAmount.value = inputTransferTo.value = ''; //whether transfer was successful or not, we have to clean those input fields and ...
+  inputTransferAmount.blur(); //and get the focus out of this one
+}
 
 
