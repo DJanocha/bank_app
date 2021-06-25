@@ -75,39 +75,55 @@ const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 
 /////////////////////////////////////////////////
 
+
+
+const deposits = accounts[0].movements.filter(mov => mov > 0);
+const withdrawals = accounts[0].movements.filter(mov => mov < 0);
+const getFinalBalance = movements => movements.reduce((acc, mov) => acc + mov)
+
 //inserting user's movements (cash transfers):
 
-function populateMovements(userIndex) {
-  containerMovements.innerHTML=''; // clean hardcoded html made (the skeleton on which we based that contained both  movement types)
-  for (const [index, value] of Object.entries(accounts[userIndex].movements)) {
-    const type = value<0 ? 'withdrawal' : 'deposit'
+function displayMovements(movements) {
+  containerMovements.innerHTML = ''; // clean hardcoded html made (the skeleton on which we based that contained both  movement types)
+  for (const [index, value] of Object.entries(movements)) {
+    const type = value < 0 ? 'withdrawal' : 'deposit'
     const movementsString = `<div class="movements__row">
-      <div class="movements__type movements__type--${type}">${+index+1} ${type}</div>
-      <div class="movements__value">${value}</div>
+      <div class="movements__type movements__type--${type}">${+index + 1} ${type}</div>
+      <div class="movements__value">${value + "€"}</div>
     </div>`;
     containerMovements.insertAdjacentHTML('afterbegin', movementsString);
   }
 }
-const  generateUsername = username =>"".concat(username)
-.replace('-',' ')
-.toLowerCase().split(' ')
-.map(word=>word[0])
-.join('');
-
- const createUsernames= accs =>{
-  accs.forEach(acc =>{acc.username = generateUsername(acc.owner)});
+function displayBalance(movements) {
+  labelBalance.textContent = getFinalBalance(movements) + "€"
 }
-populateMovements(0);
 
+const generateUsername = username => "".concat(username)
+  .replace('-', ' ')
+  .toLowerCase().split(' ')
+  .map(word => word[0])
+  .join('');
+
+const createUsernames = accs => {
+  accs.forEach(acc => { acc.username = generateUsername(acc.owner) });
+}
+const displaySummary = movements => {
+  const sumIn = movements.filter(el => el>0).reduce((acc, item) => acc+item);
+  const sumOut = movements.filter(el=>el<0).reduce((acc, item) => acc+item);
+  const interest = movements.filter(el=>el>0).map(dep => dep*0.012).filter(int => int>=1).reduce((acc, item) => acc+item);
+  labelSumIn.textContent=sumIn + "€";
+  labelSumOut.textContent=Math.abs(sumOut) + "€";
+  labelSumInterest.textContent=interest+"€";
+
+  
+}
+
+// update visual data:
 createUsernames(accounts)
-console.log(accounts);
-// console.log(generateUsername('Katarzyna Bak-Janocha'))
-// console.log(generateUsername('Daniel Janocha'))
+displayMovements(accounts[0].movements);
+displayBalance(accounts[0].movements);
+displaySummary(accounts[0].movements);
 
-// console.log(generateUsername('Stanisław August Poniatowski'))
 
-const deposits = accounts[0].movements.filter(mov=>mov>0);
-const withdrawals = accounts[0].movements.filter(mov => mov<0);
 
-console.log(deposits)
-console.log(withdrawals)
+
