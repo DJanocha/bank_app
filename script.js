@@ -77,9 +77,6 @@ const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 
 
 
-const deposits = accounts[0].movements.filter(mov => mov > 0);
-const withdrawals = accounts[0].movements.filter(mov => mov < 0);
-const getFinalBalance = movements => movements.reduce((acc, mov) => acc + mov)
 
 //inserting user's movements (cash transfers):
 
@@ -95,6 +92,7 @@ function displayMovements(movements) {
   }
 }
 function displayBalance(movements) {
+  const getFinalBalance = movements => movements.reduce((acc, mov) => acc + mov)
   labelBalance.textContent = getFinalBalance(movements) + "€"
 }
 
@@ -107,22 +105,41 @@ const generateUsername = username => "".concat(username)
 const createUsernames = accs => {
   accs.forEach(acc => { acc.username = generateUsername(acc.owner) });
 }
-const displaySummary = movements => {
-  const sumIn = movements.filter(el => el>0).reduce((acc, item) => acc+item);
-  const sumOut = movements.filter(el=>el<0).reduce((acc, item) => acc+item);
-  const interest = movements.filter(el=>el>0).map(dep => dep*0.012).filter(int => int>=1).reduce((acc, item) => acc+item);
-  labelSumIn.textContent=sumIn + "€";
-  labelSumOut.textContent=Math.abs(sumOut) + "€";
-  labelSumInterest.textContent=interest+"€";
-
-  
+const displaySummary = user => {
+  const sumIn = user.movements.filter(el => el > 0).reduce((acc, item) => acc + item);
+  const sumOut = user.movements.filter(el => el < 0).reduce((acc, item) => acc + item);
+  const interest = user.movements.filter(el => el > 0).map(dep => dep * user.interestRate * 0.01).filter(int => int >= 1).reduce((acc, item) => acc + item);
+  labelSumIn.textContent = sumIn + "€";
+  labelSumOut.textContent = Math.abs(sumOut) + "€";
+  labelSumInterest.textContent = interest + "€";
+}
+const loginInto = e => {
 }
 
 // update visual data:
 createUsernames(accounts)
-displayMovements(accounts[0].movements);
-displayBalance(accounts[0].movements);
-displaySummary(accounts[0].movements);
+
+//event listeners:
+let currentUser;
+btnLogin.addEventListener('click', function (e) {
+  e.preventDefault();
+  const login = inputLoginUsername.value;
+  const password = Number(inputLoginPin.value);
+  currentUser = accounts.find(acc => (acc.username === login && acc.pin === password));
+  if (!currentUser) return;
+  containerApp.style.opacity = "100"; // show content after logging
+  labelWelcome.textContent = `Welcome, ${currentUser.owner.split(' ')[0]}!`
+
+  inputLoginUsername.value = ''; //clean username label after logging
+  inputLoginPin.value = ''; //clean password label after logging
+  inputLoginPin.blur(); //unfocus password label after logging
+
+
+  displayMovements(currentUser.movements);
+  displayBalance(currentUser.movements);
+  displaySummary(currentUser);
+
+});
 
 
 
