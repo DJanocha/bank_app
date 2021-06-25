@@ -88,4 +88,26 @@ function populateMovements(userIndex) {
     containerMovements.insertAdjacentHTML('afterbegin', movementsString);
   }
 }
+const  generateUsername = username =>"".concat(username)
+.replace('-',' ')
+.toLowerCase().split(' ')
+.map(word=>word[0])
+.join('');
+
+ const createUsernames= accs =>{
+  accs.forEach(acc =>{acc.username = generateUsername(acc.owner)});
+}
 populateMovements(0);
+
+createUsernames(accounts)
+console.log(accounts);
+// console.log(generateUsername('Katarzyna Bak-Janocha'))
+// console.log(generateUsername('Daniel Janocha'))
+
+// console.log(generateUsername('Stanisław August Poniatowski'))
+
+const deposits = accounts[0].movements.filter(mov=>mov>0);
+const withdrawals = accounts[0].movements.filter(mov => mov<0);
+
+console.log(deposits)
+console.log(withdrawals)
