@@ -163,6 +163,18 @@ btnLogin.addEventListener('click', function (e) {
 
 });
 
+//if we want to get a loan, the rule is:
+//"if any of the movement is 10% of requested loan, we can give it to you"
+btnLoan.addEventListener('click', (e)=>{
+  e.preventDefault();
+  const loanRate=0.1//0.1=10%;
+  const requestedAmmount = Number(inputLoanAmount.value);
+  currentUser.movements.some(move=>move>=loanRate*requestedAmmount) && setTimeout(() => {
+    currentUser.movements.push(requestedAmmount);
+  updateUI(currentUser);
+  }, 1500);
+});
+
 btnTransfer.addEventListener('click', function(e){
   e.preventDefault();
   setTimeout(transferMoney, 1000);
