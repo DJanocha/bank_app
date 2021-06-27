@@ -10,6 +10,18 @@ const account1 = {
   movements: [200, 450, -400, 3000, -650, -130, 70, 1300],
   interestRate: 1.2, // %
   pin: 1111,
+  movementsDates: [
+    '2019-11-18T21:31:17.178Z',
+    '2019-12-23T07:42:02.383Z',
+    '2020-01-28T09:15:04.904Z',
+    '2020-04-01T10:17:24.185Z',
+    '2020-05-08T14:11:59.604Z',
+    '2020-05-27T17:01:17.194Z',
+    '2020-07-11T23:36:17.929Z',
+    '2020-07-12T10:51:36.790Z',
+  ],
+  currency: 'EUR',
+  locale: 'pt-PT', // de-DE
 };
 
 const account2 = {
@@ -17,6 +29,18 @@ const account2 = {
   movements: [5000, 3400, -150, -790, -3210, -1000, 8500, -30],
   interestRate: 1.5,
   pin: 2222,
+  movementsDates: [
+    '2019-11-01T13:15:33.035Z',
+    '2019-11-30T09:48:16.867Z',
+    '2019-12-25T06:04:23.907Z',
+    '2020-01-25T14:18:46.235Z',
+    '2020-02-05T16:33:06.386Z',
+    '2020-04-10T14:43:26.374Z',
+    '2020-06-25T18:49:59.371Z',
+    '2020-07-26T12:01:20.894Z',
+  ],
+  currency: 'USD',
+  locale: 'en-US',
 };
 
 const account3 = {
@@ -24,6 +48,18 @@ const account3 = {
   movements: [200, -200, 340, -300, -20, 50, 400, -460],
   interestRate: 0.7,
   pin: 3333,
+  movementsDates: [
+    '2019-11-18T21:31:17.178Z',
+    '2019-12-23T07:42:02.383Z',
+    '2020-01-28T09:15:04.904Z',
+    '2020-04-01T10:17:24.185Z',
+    '2020-05-08T14:11:59.604Z',
+    '2020-05-27T17:01:17.194Z',
+    '2020-07-11T23:36:17.929Z',
+    '2020-07-12T10:51:36.790Z',
+  ],
+  currency: 'EUR',
+  locale: 'pt-PT', // de-DE
 };
 
 const account4 = {
@@ -31,6 +67,18 @@ const account4 = {
   movements: [430, 1000, 700, 50, 90],
   interestRate: 1,
   pin: 4444,
+  movementsDates: [
+    '2019-11-01T13:15:33.035Z',
+    '2019-11-30T09:48:16.867Z',
+    '2019-12-25T06:04:23.907Z',
+    '2020-01-25T14:18:46.235Z',
+    '2020-02-05T16:33:06.386Z',
+    '2020-04-10T14:43:26.374Z',
+    '2020-06-25T18:49:59.371Z',
+    '2020-07-26T12:01:20.894Z',
+  ],
+  currency: 'USD',
+  locale: 'en-US',
 };
 
 const accounts = [account1, account2, account3, account4];
@@ -83,26 +131,29 @@ const currencies = new Map([
 const getFinalBalance = movements => movements.reduce((acc, mov) => acc + mov)
 
 const generateUsername = username => "".concat(username)
-.replace('-', ' ')
-.toLowerCase().split(' ')
-.map(word => word[0])
-.join('');
+  .replace('-', ' ')
+  .toLowerCase().split(' ')
+  .map(word => word[0])
+  .join('');
 
 
 
 const createUsernames = accs => {
   accs.forEach(acc => { acc.username = generateUsername(acc.owner) });
 }
-const transferMoney=()=>{
+const transferMoney = () => {
   let amount = Number(inputTransferAmount.value);
   let dest = inputTransferTo.value;
-  if (amount > 0 && amount<=currentUser.balance && accounts.find(acc => acc.username ===dest)){
-    const findresult = accounts.find(acc => acc.username===dest)
+  if (amount > 0 && amount <= currentUser.balance && accounts.find(acc => acc.username === dest)) {
+    const findresult = accounts.find(acc => acc.username === dest)
 
-    //add movement to curr user (negative value)
-    currentUser.movements.push(0-amount);//
-    // //add movement to destination user (positive value)
+    //add movement to curr user (negative value) and give new timestamp to curr user 
+    currentUser.movements.push(0 - amount);//
+    currentUser.movementsDates.push(new Date().toISOString())
+    // //add movement to destination user (positive value)and give new timestamp to other  user 
     findresult.movements.push(amount)
+    findresult.movementsDates.push(new Date().toISOString())
+
 
     updateUI(currentUser);
   }
@@ -112,20 +163,40 @@ const transferMoney=()=>{
 
 createUsernames(accounts);
 // update visual data:
-function hideUI(){
-  containerApp.style.opacity=0;
+function hideUI() {
+  containerApp.style.opacity = 0;
 }
-function updateUI(user){
-  displayMovements(user.movements)
+function updateUI(user) {
+  displayMovements(user)
   displaySummary(user);
   displayBalance(user);
+  displayCurrentDate();
+  displayCurrentDate();
 }
-function displayMovements(movements) {
+
+function renderDate(construct){
+  const now = new Date(construct);
+  const year = now.getFullYear();
+  const month = `${now.getMonth()+1}`.padStart(2,0);
+  const day = `${now.getDate()}`.padStart(2,0);
+  const hour = `${now.getHours()}`.padStart(2,0);
+  const minutes = `${now.getMinutes()}`.padStart(2,0);
+  return `${day}/${month}/${year} ${hour}:${minutes}`
+}
+function displayCurrentDate(){
+const now = new Date();
+
+labelDate.textContent=`As of ${renderDate
+(now)}`
+}
+function displayMovements(account, sort=false) {
+  const sortedMovements = sort ? account.movements.splice().sort((a,b) => a-b) : account.movements;
   containerMovements.innerHTML = ''; // clean hardcoded html made (the skeleton on which we based that contained both  movement types)
-  for (const [index, value] of Object.entries(movements)) {
+  for (const [index, value] of Object.entries(sortedMovements)) {
     const type = value < 0 ? 'withdrawal' : 'deposit'
     const movementsString = `<div class="movements__row">
       <div class="movements__type movements__type--${type}">${+index + 1} ${type}</div>
+      <div class="movements__date">${renderDate(account.movementsDates[index])}</div>
       <div class="movements__value">${value + "€"}</div>
     </div>`;
     containerMovements.insertAdjacentHTML('afterbegin', movementsString);
@@ -142,6 +213,11 @@ const displaySummary = user => {
 function displayBalance(account) {
   account.balance = getFinalBalance(account.movements);
   labelBalance.textContent = account.balance + "€"
+}
+function handleSorting(container) {
+  if (typeof (handleSorting.sortedDesc) === undefined)
+    handleSorting.sortedDesc = false;
+  if (handleSorting.sortedDESC === false) { }
 }
 
 //event listeners:
@@ -165,38 +241,57 @@ btnLogin.addEventListener('click', function (e) {
 
 //if we want to get a loan, the rule is:
 //"if any of the movement is 10% of requested loan, we can give it to you"
-btnLoan.addEventListener('click', (e)=>{
+btnLoan.addEventListener('click', (e) => {
   e.preventDefault();
-  const loanRate=0.1//0.1=10%;
-  const requestedAmmount = Number(inputLoanAmount.value);
-  currentUser.movements.some(move=>move>=loanRate*requestedAmmount) && setTimeout(() => {
+  const loanRate = 0.1//0.1=10%;
+  const requestedAmmount = Number.floor(Math.abs(inputLoanAmount.value));
+  currentUser.movements.some(move => move >= loanRate * requestedAmmount) && setTimeout(() => {
     currentUser.movements.push(requestedAmmount);
-  updateUI(currentUser);
+    updateUI(currentUser);
   }, 1500);
 });
-
-btnTransfer.addEventListener('click', function(e){
+btnTransfer.addEventListener('click', function (e) {
   e.preventDefault();
   setTimeout(transferMoney, 1000);
 
 });
+btnSort.addEventListener('click', () => {
+  if (addEventListener.sortedDesc === undefined) { // if static variable (ifSortedDesc), define it with true
+        addEventListener.sortedDesc = true;
+        currentUser.movements.sort((a, b) => a - b) // and sort descending 
+        // console.log('from undefined to true')
+  }
+  else if (addEventListener.sortedDesc===true){ // if it's sorted descending, change it to ascending (kind of 'toogle boolean)
+        currentUser.movements.sort((a,b) => b-a)
+        addEventListener.sortedDesc=false
+        // console.log('from true to false')
+  } else{
+    currentUser.movements.sort((a,b) => a-b) // other toggle
+    addEventListener.sortedDesc=true
+    // console.log('from false to true')
+  }
+  //sort movements of current user
+  // currentUser.movements.sort((a, b) => a - b);
+  //updateUI
+  updateUI(currentUser); //nonetheless, just update UI if any of ifs' took place
+})
 
-btnClose.addEventListener('click', function(e){
+btnClose.addEventListener('click', function (e) {
   e.preventDefault();
   const givenUsername = inputCloseUsername.value;
   const givenPassword = Number(inputClosePin.value);
 
-  if (givenUsername===currentUser.username && givenPassword===currentUser.pin){
-    setTimeout(()=>{
-      if(confirm("are you sure?")){
-        const index = accounts.findIndex(acc=>acc.username === currentUser.username);
+  if (givenUsername === currentUser.username && givenPassword === currentUser.pin) {
+    setTimeout(() => {
+      if (confirm("are you sure?")) {
+        const index = accounts.findIndex(acc => acc.username === currentUser.username);
         console.log(index)
         accounts.splice(index, 1)
         console.log(`removedd ${index}. user`);
         hideUI();
-        labelWelcome.textContent='Feel free to log in :)';
+        labelWelcome.textContent = 'Feel free to log in :)';
       }
-    },1000);
+    }, 1000);
   }
 })
 
@@ -204,3 +299,10 @@ btnClose.addEventListener('click', function(e){
 
 
 
+const fakeLogin = () => {
+  currentUser=accounts[0];
+  updateUI(currentUser);
+  containerApp.style.opacity = 1;
+  
+}
+fakeLogin()
