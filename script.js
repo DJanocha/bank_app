@@ -16,9 +16,9 @@ const account1 = {
     '2020-01-28T09:15:04.904Z',
     '2020-04-01T10:17:24.185Z',
     '2020-05-08T14:11:59.604Z',
-    '2020-05-27T17:01:17.194Z',
-    '2020-07-11T23:36:17.929Z',
-    '2020-07-12T10:51:36.790Z',
+    '2021-06-25T17:01:17.194Z',
+    '2021-06-26T23:36:17.929Z',
+    '2021-06-27T10:51:36.790Z',
   ],
   currency: 'EUR',
   locale: 'pt-PT', // de-DE
@@ -189,6 +189,22 @@ const now = new Date();
 labelDate.textContent=`As of ${renderDate
 (now)}`
 }
+function when(date){
+  console.log('in when')
+  const now = new Date();
+  const then = new Date(date);
+  const daysBetween=(before, after)=>{
+    return Math.floor(Math.abs((before- after)/(1000*3600*24)))
+  }
+  const diff = daysBetween(then, now);
+  let answer='';
+  if(diff<0) answer='not yet'
+  else if (diff===0) answer='today'
+  else if (diff===1) answer='yesterday'
+  else if (diff<8) answer=`${diff} days ago`
+  else answer=renderDate(then);
+  return answer;
+}
 function displayMovements(account, sort=false) {
   const sortedMovements = sort ? account.movements.splice().sort((a,b) => a-b) : account.movements;
   containerMovements.innerHTML = ''; // clean hardcoded html made (the skeleton on which we based that contained both  movement types)
@@ -196,7 +212,7 @@ function displayMovements(account, sort=false) {
     const type = value < 0 ? 'withdrawal' : 'deposit'
     const movementsString = `<div class="movements__row">
       <div class="movements__type movements__type--${type}">${+index + 1} ${type}</div>
-      <div class="movements__date">${renderDate(account.movementsDates[index])}</div>
+      <div class="movements__date">${when(account.movementsDates[index])}</div>
       <div class="movements__value">${value + "€"}</div>
     </div>`;
     containerMovements.insertAdjacentHTML('afterbegin', movementsString);
