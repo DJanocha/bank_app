@@ -200,7 +200,7 @@ function displayCurrentDate() {
   }
   // labelDate.textContent=`As of ${renderDate(now)}`
   // const userLocale = navigator.locale // get locale of person using the web app
-  labelDate.textContent = `As of ${new Intl.DateTimeFormat(currentUser.locale, options).format(now)}`
+  labelDate.textContent = `As of ${new Intl.DateTimeFormat(currentUser?.locale, options).format(now)}`
 }
 function when(date, locale) {
   const now = new Date();
@@ -326,6 +326,10 @@ btnLoan.addEventListener('click', (e) => {
     currentUser.movementsDates.push(new Date().toISOString())
     updateUI(currentUser);
   }, 1500);
+  
+  //clear the input field
+  inputLoanAmount.value= '';
+
 });
 btnTransfer.addEventListener('click', function (e) {
   timer=resetTimer(timer);
@@ -348,9 +352,10 @@ btnSort.addEventListener('click', () => {
     currentUser.movements.sort((a, b) => a - b) // other toggle
     addEventListener.sortedDesc = true
     // console.log('from false to true')
-  }
+  };
   //sort movements of current user
   // currentUser.movements.sort((a, b) => a - b);
+  
   //updateUI
   updateUI(currentUser); //nonetheless, just update UI if any of ifs' took place
 })
@@ -373,6 +378,8 @@ btnClose.addEventListener('click', function (e) {
       }
     }, 1000);
   }
+  inputCloseUsername.value= '';
+  inputClosePin.value='';
 })
 
 ////////////////////////////////////////////////////////////////////// TRYING ONLY:
