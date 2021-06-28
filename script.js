@@ -165,6 +165,8 @@ createUsernames(accounts);
 // update visual data:
 function hideUI() {
   containerApp.style.opacity = 0;
+  labelWelcome.textContent='feel free to log in'
+  clearInterval(timer);
 }
 function updateUI(user) {
   displayMovements(user)
@@ -176,7 +178,8 @@ function updateUI(user) {
 
 function renderDate(construct, locale) {
   const now = new Date(construct);
-  return new Intl.DateTimeFormat(locale).format(now);
+  const output = new Intl.DateTimeFormat(locale).format(now);
+  return output;
   // const year = now.getFullYear();
   // const month = `${now.getMonth() + 1}`.padStart(2, 0);
   // const day = `${now.getDate()}`.padStart(2, 0);
@@ -189,21 +192,23 @@ function displayCurrentDate() {
   const options = {
     hour: 'numeric',
     minute: 'numeric',
-    second:'numeric',
+    second: 'numeric',
     year: 'numeric', //or e.g. '2-digit'
     month: 'long', //or e.g. '2-digit'/ 'short'
     day: 'numeric', //or e.g. '2-digit',
     weekday: 'long' // or e.g. 'short'/ 'narrow'
   }
-  // labelDate.textContent=`As of ${renderDate
-  // (now)}`
-  // const userLocale = navigator.locale
+  // labelDate.textContent=`As of ${renderDate(now)}`
+  // const userLocale = navigator.locale // get locale of person using the web app
   labelDate.textContent = `As of ${new Intl.DateTimeFormat(currentUser.locale, options).format(now)}`
 }
 function when(date, locale) {
-  console.log('in when')
   const now = new Date();
+  console.log(date);
+  console.log(locale);
   const then = new Date(date);
+  console.log(now)
+  console.log(then)
   const daysBetween = (before, after) => {
     return Math.floor(Math.abs((before - after) / (1000 * 3600 * 24)))
   }
@@ -213,11 +218,12 @@ function when(date, locale) {
   else if (diff === 0) answer = 'today'
   else if (diff === 1) answer = 'yesterday'
   else if (diff < 8) answer = `${diff} days ago`
-  else answer = renderDate(then, locale);
+  else answer = renderDate(then.toISOString(), locale);
+  console.log(answer)
   return answer;
 }
 function formatCur(value, currency, locale) {
-  const options={
+  const options = {
     style: 'currency',
     currency: currency,
 
@@ -226,7 +232,7 @@ function formatCur(value, currency, locale) {
 }
 
 function displayMovements(account, sort = false) {
-  const sortedMovements = sort ? account.movements.splice().sort((a, b) => a - b) : account.movements;
+  const sortedMovements = sort ? account.movements.slice().sort((a, b) => a - b) : account.movements;
   containerMovements.innerHTML = ''; // clean hardcoded html made (the skeleton on which we based that contained both  movement types)
   for (const [index, value] of Object.entries(sortedMovements)) {
     const type = value < 0 ? 'withdrawal' : 'deposit'
@@ -243,8 +249,8 @@ const displaySummary = user => {
   const sumOut = Math.abs(user.movements.filter(el => el < 0).reduce((acc, item) => acc + item));
   const interest = user.movements.filter(el => el > 0).map(dep => dep * user.interestRate * 0.01).filter(int => int >= 1).reduce((acc, item) => acc + item);
   labelSumIn.textContent = formatCur(sumIn, user.currency, user.locale);
-  labelSumOut.textContent= formatCur(sumOut, user.currency, user.locale);
-  labelSumInterest.textContent=formatCur(interest, user.currency, user.locale);
+  labelSumOut.textContent = formatCur(sumOut, user.currency, user.locale);
+  labelSumInterest.textContent = formatCur(interest, user.currency, user.locale);
   // labelSumIn.textContent = sumIn + "€";
   // labelSumOut.textContent = Math.abs(sumOut) + "€";
   // labelSumInterest.textContent = interest + "€";
@@ -259,9 +265,32 @@ function handleSorting(container) {
     handleSorting.sortedDesc = false;
   if (handleSorting.sortedDESC === false) { }
 }
+function resetTimer(theTimer){
+  if (theTimer) clearInterval(theTimer);
+  return setLogOutTimer();
+}
+function setLogOutTimer() {
 
+  let time = 120;
+  const logoutTimer = setInterval(() => {
+    const minutes = `${Math.floor(time / 60)}`.padStart(2, 0);
+    const seconds = `${time % 60}`.padStart(2, 0);
+    //if time<1 logout
+    if (time < 1) {
+      clearInterval(logoutTimer);
+      hideUI();
+    }
+    //update timer in ui
+    labelTimer.textContent = `${minutes}:${seconds}`;
+    //decrement time
+    --time;
+
+
+  }, 1000)
+  return logoutTimer;
+}
 //event listeners:
-let currentUser;
+let currentUser, timer;
 btnLogin.addEventListener('click', function (e) {
   e.preventDefault();
   const login = inputLoginUsername.value;
@@ -275,6 +304,9 @@ btnLogin.addEventListener('click', function (e) {
   inputLoginPin.value = ''; //clean password label after logging
   inputLoginPin.blur(); //unfocus password label after logging
 
+
+  timer && clearInterval(timer) // if there's a timer already runninig, clear it before starting new one
+  timer = setLogOutTimer();
   updateUI(currentUser);
 
 });
@@ -282,20 +314,27 @@ btnLogin.addEventListener('click', function (e) {
 //if we want to get a loan, the rule is:
 //"if any of the movement is 10% of requested loan, we can give it to you"
 btnLoan.addEventListener('click', (e) => {
+
   e.preventDefault();
+  timer=resetTimer(timer);
   const loanRate = 0.1//0.1=10%;
-  const requestedAmmount = Number.floor(Math.abs(inputLoanAmount.value));
+  if (!inputLoanAmount.value) return
+  const requestedAmmount = Math.floor(Math.abs(+inputLoanAmount.value));
+  console.log(requestedAmmount)
   currentUser.movements.some(move => move >= loanRate * requestedAmmount) && setTimeout(() => {
     currentUser.movements.push(requestedAmmount);
+    currentUser.movementsDates.push(new Date().toISOString())
     updateUI(currentUser);
   }, 1500);
 });
 btnTransfer.addEventListener('click', function (e) {
+  timer=resetTimer(timer);
   e.preventDefault();
   setTimeout(transferMoney, 1000);
 
 });
 btnSort.addEventListener('click', () => {
+  timer=resetTimer(timer);
   if (addEventListener.sortedDesc === undefined) { // if static variable (ifSortedDesc), define it with true
     addEventListener.sortedDesc = true;
     currentUser.movements.sort((a, b) => a - b) // and sort descending 
@@ -317,6 +356,7 @@ btnSort.addEventListener('click', () => {
 })
 
 btnClose.addEventListener('click', function (e) {
+  timer=resetTimer(timer);
   e.preventDefault();
   const givenUsername = inputCloseUsername.value;
   const givenPassword = Number(inputClosePin.value);
@@ -345,4 +385,4 @@ const fakeLogin = () => {
   containerApp.style.opacity = 1;
 
 }
-fakeLogin()
+// fakeLogin()
