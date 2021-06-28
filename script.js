@@ -170,8 +170,8 @@ function updateUI(user) {
   displayMovements(user)
   displaySummary(user);
   displayBalance(user);
-  displayCurrentDate();
-  displayCurrentDate();
+  setInterval(displayCurrentDate, 1000);
+  // displayCurrentDate();
 }
 
 function renderDate(construct, locale) {
@@ -189,6 +189,7 @@ function displayCurrentDate() {
   const options = {
     hour: 'numeric',
     minute: 'numeric',
+    second:'numeric',
     year: 'numeric', //or e.g. '2-digit'
     month: 'long', //or e.g. '2-digit'/ 'short'
     day: 'numeric', //or e.g. '2-digit',
