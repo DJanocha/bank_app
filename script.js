@@ -215,6 +215,15 @@ function when(date, locale) {
   else answer = renderDate(then, locale);
   return answer;
 }
+function formatCur(value, currency, locale) {
+  const options={
+    style: 'currency',
+    currency: currency,
+
+  }
+  return new Intl.NumberFormat(locale, options).format(value)
+}
+
 function displayMovements(account, sort = false) {
   const sortedMovements = sort ? account.movements.splice().sort((a, b) => a - b) : account.movements;
   containerMovements.innerHTML = ''; // clean hardcoded html made (the skeleton on which we based that contained both  movement types)
@@ -223,22 +232,26 @@ function displayMovements(account, sort = false) {
     const movementsString = `<div class="movements__row">
       <div class="movements__type movements__type--${type}">${+index + 1} ${type}</div>
       <div class="movements__date">${when(account.movementsDates[index], account.locale)}</div>
-      <div class="movements__value">${value + "€"}</div>
+      <div class="movements__value">${formatCur(value, account.currency, account.locale)}</div>
     </div>`;
     containerMovements.insertAdjacentHTML('afterbegin', movementsString);
   }
 }
 const displaySummary = user => {
   const sumIn = user.movements.filter(el => el > 0).reduce((acc, item) => acc + item);
-  const sumOut = user.movements.filter(el => el < 0).reduce((acc, item) => acc + item);
+  const sumOut = Math.abs(user.movements.filter(el => el < 0).reduce((acc, item) => acc + item));
   const interest = user.movements.filter(el => el > 0).map(dep => dep * user.interestRate * 0.01).filter(int => int >= 1).reduce((acc, item) => acc + item);
-  labelSumIn.textContent = sumIn + "€";
-  labelSumOut.textContent = Math.abs(sumOut) + "€";
-  labelSumInterest.textContent = interest + "€";
+  labelSumIn.textContent = formatCur(sumIn, user.currency, user.locale);
+  labelSumOut.textContent= formatCur(sumOut, user.currency, user.locale);
+  labelSumInterest.textContent=formatCur(interest, user.currency, user.locale);
+  // labelSumIn.textContent = sumIn + "€";
+  // labelSumOut.textContent = Math.abs(sumOut) + "€";
+  // labelSumInterest.textContent = interest + "€";
 }
 function displayBalance(account) {
   account.balance = getFinalBalance(account.movements);
-  labelBalance.textContent = account.balance + "€"
+  // labelBalance.textContent = account.balance + "€"
+  labelBalance.textContent = formatCur(account.balance, account.currency, account.locale)
 }
 function handleSorting(container) {
   if (typeof (handleSorting.sortedDesc) === undefined)
