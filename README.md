@@ -15,7 +15,7 @@
 
 4. 4th one you can find in the source code ;)
 
-There's a lot of stuff going on with JS arrays. I encourage you to clone  that and try for yourself ;)
+There's a lot of stuff going on with JS arrays. I encourage you to clone  that and using live-server try for yourself ;)
 
 <div align="center" color="orangered"><h3>DEMO BELOW</h3></div>
 
