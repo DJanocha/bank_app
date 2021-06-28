@@ -21,7 +21,7 @@ const account1 = {
     '2021-06-27T10:51:36.790Z',
   ],
   currency: 'EUR',
-  locale: 'pt-PT', // de-DE
+  locale: 'pl-PL', // de-DE
 };
 
 const account2 = {
@@ -174,45 +174,55 @@ function updateUI(user) {
   displayCurrentDate();
 }
 
-function renderDate(construct){
+function renderDate(construct, locale) {
   const now = new Date(construct);
-  const year = now.getFullYear();
-  const month = `${now.getMonth()+1}`.padStart(2,0);
-  const day = `${now.getDate()}`.padStart(2,0);
-  const hour = `${now.getHours()}`.padStart(2,0);
-  const minutes = `${now.getMinutes()}`.padStart(2,0);
-  return `${day}/${month}/${year} ${hour}:${minutes}`
+  return new Intl.DateTimeFormat(locale).format(now);
+  // const year = now.getFullYear();
+  // const month = `${now.getMonth() + 1}`.padStart(2, 0);
+  // const day = `${now.getDate()}`.padStart(2, 0);
+  // const hour = `${now.getHours()}`.padStart(2, 0);
+  // const minutes = `${now.getMinutes()}`.padStart(2, 0);
+  // return `${day}/${month}/${year} ${hour}:${minutes}`
 }
-function displayCurrentDate(){
-const now = new Date();
-
-labelDate.textContent=`As of ${renderDate
-(now)}`
+function displayCurrentDate() {
+  const now = new Date();
+  const options = {
+    hour: 'numeric',
+    minute: 'numeric',
+    year: 'numeric', //or e.g. '2-digit'
+    month: 'long', //or e.g. '2-digit'/ 'short'
+    day: 'numeric', //or e.g. '2-digit',
+    weekday: 'long' // or e.g. 'short'/ 'narrow'
+  }
+  // labelDate.textContent=`As of ${renderDate
+  // (now)}`
+  // const userLocale = navigator.locale
+  labelDate.textContent = `As of ${new Intl.DateTimeFormat(currentUser.locale, options).format(now)}`
 }
-function when(date){
+function when(date, locale) {
   console.log('in when')
   const now = new Date();
   const then = new Date(date);
-  const daysBetween=(before, after)=>{
-    return Math.floor(Math.abs((before- after)/(1000*3600*24)))
+  const daysBetween = (before, after) => {
+    return Math.floor(Math.abs((before - after) / (1000 * 3600 * 24)))
   }
   const diff = daysBetween(then, now);
-  let answer='';
-  if(diff<0) answer='not yet'
-  else if (diff===0) answer='today'
-  else if (diff===1) answer='yesterday'
-  else if (diff<8) answer=`${diff} days ago`
-  else answer=renderDate(then);
+  let answer = '';
+  if (diff < 0) answer = 'not yet'
+  else if (diff === 0) answer = 'today'
+  else if (diff === 1) answer = 'yesterday'
+  else if (diff < 8) answer = `${diff} days ago`
+  else answer = renderDate(then, locale);
   return answer;
 }
-function displayMovements(account, sort=false) {
-  const sortedMovements = sort ? account.movements.splice().sort((a,b) => a-b) : account.movements;
+function displayMovements(account, sort = false) {
+  const sortedMovements = sort ? account.movements.splice().sort((a, b) => a - b) : account.movements;
   containerMovements.innerHTML = ''; // clean hardcoded html made (the skeleton on which we based that contained both  movement types)
   for (const [index, value] of Object.entries(sortedMovements)) {
     const type = value < 0 ? 'withdrawal' : 'deposit'
     const movementsString = `<div class="movements__row">
       <div class="movements__type movements__type--${type}">${+index + 1} ${type}</div>
-      <div class="movements__date">${when(account.movementsDates[index])}</div>
+      <div class="movements__date">${when(account.movementsDates[index], account.locale)}</div>
       <div class="movements__value">${value + "€"}</div>
     </div>`;
     containerMovements.insertAdjacentHTML('afterbegin', movementsString);
@@ -273,17 +283,17 @@ btnTransfer.addEventListener('click', function (e) {
 });
 btnSort.addEventListener('click', () => {
   if (addEventListener.sortedDesc === undefined) { // if static variable (ifSortedDesc), define it with true
-        addEventListener.sortedDesc = true;
-        currentUser.movements.sort((a, b) => a - b) // and sort descending 
-        // console.log('from undefined to true')
+    addEventListener.sortedDesc = true;
+    currentUser.movements.sort((a, b) => a - b) // and sort descending 
+    // console.log('from undefined to true')
   }
-  else if (addEventListener.sortedDesc===true){ // if it's sorted descending, change it to ascending (kind of 'toogle boolean)
-        currentUser.movements.sort((a,b) => b-a)
-        addEventListener.sortedDesc=false
-        // console.log('from true to false')
-  } else{
-    currentUser.movements.sort((a,b) => a-b) // other toggle
-    addEventListener.sortedDesc=true
+  else if (addEventListener.sortedDesc === true) { // if it's sorted descending, change it to ascending (kind of 'toogle boolean)
+    currentUser.movements.sort((a, b) => b - a)
+    addEventListener.sortedDesc = false
+    // console.log('from true to false')
+  } else {
+    currentUser.movements.sort((a, b) => a - b) // other toggle
+    addEventListener.sortedDesc = true
     // console.log('from false to true')
   }
   //sort movements of current user
@@ -316,9 +326,9 @@ btnClose.addEventListener('click', function (e) {
 
 
 const fakeLogin = () => {
-  currentUser=accounts[0];
+  currentUser = accounts[0];
   updateUI(currentUser);
   containerApp.style.opacity = 1;
-  
+
 }
 fakeLogin()
